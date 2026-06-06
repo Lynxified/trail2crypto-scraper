@@ -15,7 +15,14 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 const MAX_TWEETS = 10;
 
 (async () => {
-  const browser = await chromium.launch({ headless: true });
+  const browser = await chromium.launch({
+    headless: true,
+    args: [
+      '--disable-blink-features=AutomationControlled',
+      '--no-sandbox',
+      '--disable-setuid-sandbox'
+    ]
+  });
 
   let storageStatePath = path.join(__dirname, 'state.json');
   if (process.env.X_STATE) {
@@ -23,16 +30,25 @@ const MAX_TWEETS = 10;
     fs.writeFileSync(storageStatePath, Buffer.from(process.env.X_STATE, 'base64').toString());
   }
 
-  const contextOptions = {};
+  const contextOptions = {
+    viewport: { width: 1280, height: 900 },
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36'
+  };
+
   if (fs.existsSync(storageStatePath)) {
     contextOptions.storageState = storageStatePath;
   }
 
   const context = await browser.newContext(contextOptions);
+
+  await context.addInitScript(() => {
+    Object.defineProperty(navigator, 'webdriver', { get: () => false });
+  });
+
   const page = await context.newPage();
 
   await page.goto('https://x.com/Trail2Crypto', { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.waitForTimeout(10000);
+  await page.waitForTimeout(12000);
 
   const articleCount = await page.locator('article').count();
   console.log('Tweets found:', articleCount);
@@ -57,7 +73,7 @@ const MAX_TWEETS = 10;
       posts.push({
         url,
         author: 'Trail2Crypto',
-        text,
+        text: text,
         post_time: postTime || new Date().toISOString()
       });
 
