@@ -1,0 +1,9 @@
+state.json
+state-ci.json
+page.html
+*.png
+debug.png
+zix-profile/
+zix-secure-profile/
+node_modules/
+.env
