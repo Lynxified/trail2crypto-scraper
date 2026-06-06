@@ -86,11 +86,18 @@ const MAX_TWEETS = 10;
     }
   }
 
-  console.log(`Saving ${posts.length} posts...`);
+  const seen = new Set();
+  const unique = posts.filter(p => {
+    if (seen.has(p.url)) return false;
+    seen.add(p.url);
+    return true;
+  });
+
+  console.log(`Saving ${unique.length} posts...`);
 
   const { error } = await supabase
     .from('zix_posts')
-    .upsert(posts);
+    .upsert(unique);
 
   if (error) {
     console.log('SUPABASE ERROR', error.message);
