@@ -1,5 +1,6 @@
 const { chromium } = require('playwright');
 const { createClient } = require('@supabase/supabase-js');
+const WebSocket = require('ws');
 const fs = require('fs');
 const path = require('path');
 
@@ -11,7 +12,9 @@ if (!supabaseUrl || !supabaseKey) {
   process.exit(1);
 }
 
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  realtime: { transport: WebSocket }
+});
 const MAX_TWEETS = 10;
 
 (async () => {
